@@ -1,5 +1,6 @@
 package com.example.easynotes.repository;
 
+import com.example.easynotes.dto.NoteCountByDateDTO;
 import com.example.easynotes.model.Note;
 import com.example.easynotes.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -44,12 +45,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "where note.createdAt >= :date" )
     List<User> findUserByNoteCreatedAtLessOrEqualDate(@Param("date") Date date);
 
+    @Query( "select count(n.id) as count, n.created_at as date " +
+            "from Note n " +
+            "where n.author_id = :user_id and n.created_at between current_date and current_date - 3 " +
+            "group by date" )
+    List<NoteCountByDateDTO> findNotesBetweenThreeDaysAgo(@Param("user_id") Long user_id);
 
-
-
-
-
-
+    @Query( "select count(n.id) as count, n.created_at as date " +
+            "from Note n " +
+            "where n.author_id = :user_id and n.created_at between current_date and current_date - 21 " +
+            "group by date " +
+            "order by date" )
+    List<NoteCountByDateDTO> findNotesBetweenThreeWeeksAgo(@Param("user_id") Long user_id);
 
 
     //    // Ejemplo con like

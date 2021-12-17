@@ -1,11 +1,9 @@
 package com.example.easynotes.service;
 
 import com.example.easynotes.dto.*;
-import com.example.easynotes.model.User;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 public interface IUserService {
     List<UserResponseDTO> getAllUsers();
@@ -41,6 +39,8 @@ public interface IUserService {
     UserResponseDTO getUserById(Integer id);
 
     UserResponseDTO getUserByLastName(String lastName);
+
+    UserCategoryDTO getCategoryById(Long id);
 
     //  List<UserResponseDTO> getUsersLastNameLikeAndFirstNameLike(String lastName, String firstName);
 

@@ -1,6 +1,7 @@
 package com.example.easynotes.service;
 
 import com.example.easynotes.dto.*;
+import com.example.easynotes.enums.UserCategoryEnum;
 import com.example.easynotes.exception.ResourceNotFoundException;
 import com.example.easynotes.model.Note;
 import com.example.easynotes.model.Thank;
@@ -12,13 +13,14 @@ import com.example.easynotes.utils.ListMapper;
 import org.modelmapper.AbstractConverter;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -194,5 +196,43 @@ public class UserService implements IUserService {
 
         User user = query.getResultList().get(1);
         return modelMapper.map(user, UserResponseDTO.class);
+    }
+
+    @Override
+    public UserCategoryDTO getCategoryById(Long id) {
+        List<NoteCountByDateDTO> result = userRepository.findNotesBetweenThreeDaysAgo(id);
+        if (result.size() == 3) return new UserCategoryDTO(id, UserCategoryEnum.DIARY_PUBLISHER);
+
+        result = userRepository.findNotesBetweenThreeWeeksAgo(id);
+        if (noteInLastThreeWeeks(result)) return new UserCategoryDTO(id, UserCategoryEnum.WEEKLY_PUBLISHER);
+
+        return new UserCategoryDTO(id, UserCategoryEnum.PUBLISHER);
+    }
+
+    private boolean noteInLastThreeWeeks(List<NoteCountByDateDTO> notes) {
+        Predicate<LocalDate> lastWeek = localDate ->
+                localDate.equals(LocalDate.now()) || (localDate.isBefore(LocalDate.now()) &&
+                        localDate.isAfter(LocalDate.now().minusWeeks(1)));
+
+        Predicate<LocalDate> lastTwoWeeks = localDate ->
+                localDate.isBefore(LocalDate.now().minusWeeks(1)) &&
+                        localDate.isAfter(LocalDate.now().minusWeeks(2));
+
+        Predicate<LocalDate> lastThreeWeeks = localDate ->
+                localDate.isBefore(LocalDate.now().minusWeeks(2)) &&
+                        localDate.isAfter(LocalDate.now().minusWeeks(3));
+
+        List<LocalDate> dates = notes.stream()
+                .map(NoteCountByDateDTO::getDate)
+                .collect(Collectors.toList());
+
+        boolean fw = false, sw = false, tw = false;
+        for (LocalDate date : dates) {
+            if (lastWeek.test(date)) fw = true;
+            else if (lastTwoWeeks.test(date)) sw = true;
+            else if (lastThreeWeeks.test(date)) tw = true;
+        }
+
+        return fw && sw && tw;
     }
 }
