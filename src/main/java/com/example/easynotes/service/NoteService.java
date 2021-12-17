@@ -4,6 +4,7 @@ import com.example.easynotes.dto.*;
 import com.example.easynotes.exception.ResourceNotFoundException;
 import com.example.easynotes.model.Note;
 import com.example.easynotes.model.Thank;
+import com.example.easynotes.model.TypeNote;
 import com.example.easynotes.model.User;
 import com.example.easynotes.repository.NoteRepository;
 import com.example.easynotes.repository.UserRepository;
@@ -158,6 +159,17 @@ public class NoteService implements INoteService {
                 }
                 )
                 .collect(Collectors.toList());
+    }
+    @Override
+    public TypeNoteDTO getTypeNote(Long id) {
+        int countThanks = getThanks(id).size();
+        if(countThanks > 10) {
+            return new TypeNoteDTO(TypeNote.Destacada);
+        } else if (countThanks >= 5) {
+            return new TypeNoteDTO(TypeNote.DeInteres);
+        } else {
+            return new TypeNoteDTO(TypeNote.Normal);
+        }
     }
 }
 
