@@ -45,3 +45,10 @@ public class Note {
     private LocalDate updatedAt;
 
 }
+
+
+
+/*
+public enum TypeNote {Destacada, DeInteres, Normal}
+
+    TypeNote type;*/
