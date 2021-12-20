@@ -205,12 +205,13 @@ public class UserService implements IUserService {
         if (result.size() == 3) return new UserCategoryDTO(id, UserCategoryEnum.DIARY_PUBLISHER);
 
         result = userRepository.findNotesBetweenThreeWeeksAgo(id);
-        if (noteInLastThreeWeeks(result)) return new UserCategoryDTO(id, UserCategoryEnum.WEEKLY_PUBLISHER);
+        if (!result.isEmpty() && checkNoteCreatedInLastThreeWeeks(result))
+            return new UserCategoryDTO(id, UserCategoryEnum.WEEKLY_PUBLISHER);
 
         return new UserCategoryDTO(id, UserCategoryEnum.PUBLISHER);
     }
 
-    private boolean noteInLastThreeWeeks(List<LocalDate> result) {
+    private boolean checkNoteCreatedInLastThreeWeeks(List<LocalDate> result) {
         Predicate<LocalDate> lastWeek = localDate ->
                 localDate.equals(LocalDate.now()) || (localDate.isBefore(LocalDate.now()) &&
                         localDate.isAfter(LocalDate.now().minusWeeks(1)));
