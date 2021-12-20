@@ -1,16 +1,12 @@
 package com.example.easynotes.repository;
 
-import com.example.easynotes.model.Note;
 import com.example.easynotes.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.*;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -44,12 +40,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "where note.createdAt >= :date" )
     List<User> findUserByNoteCreatedAtLessOrEqualDate(@Param("date") Date date);
 
+    @Query( "select n.createdAt " +
+            "from Note n " +
+            "where n.author.id = :user_id and n.createdAt between current_date - 3 and current_date " +
+            "group by n.createdAt" )
+    List<LocalDate> findNotesBetweenThreeDaysAgo(@Param("user_id") Long userId);
 
-
-
-
-
-
+    @Query( "select n.createdAt " +
+            "from Note n " +
+            "where n.author.id = :user_id and n.createdAt between current_date - 21 and current_date " +
+            "group by n.createdAt " +
+            "order by n.createdAt" )
+    List<LocalDate> findNotesBetweenThreeWeeksAgo(@Param("user_id") Long userId);
 
 
     //    // Ejemplo con like

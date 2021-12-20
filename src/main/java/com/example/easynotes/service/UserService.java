@@ -1,6 +1,7 @@
 package com.example.easynotes.service;
 
 import com.example.easynotes.dto.*;
+import com.example.easynotes.enums.UserCategoryEnum;
 import com.example.easynotes.exception.ResourceNotFoundException;
 import com.example.easynotes.model.Note;
 import com.example.easynotes.model.Thank;
@@ -8,16 +9,19 @@ import com.example.easynotes.model.User;
 import com.example.easynotes.repository.NoteRepository;
 import com.example.easynotes.repository.ThankRepository;
 import com.example.easynotes.repository.UserRepository;
+import com.example.easynotes.utils.ListMapper;
+import org.apache.tomcat.jni.Local;
 import org.modelmapper.AbstractConverter;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -35,7 +39,7 @@ public class UserService implements IUserService {
     @PersistenceContext
     EntityManager entityManager;
 
-    UserService(UserRepository userRepository,
+    public UserService(UserRepository userRepository,
                 NoteRepository noteRepository,
                 ThankRepository thankRepository,
                 ModelMapper modelMapper) {
@@ -173,4 +177,66 @@ public class UserService implements IUserService {
         thankRepository.save(thank);
     }
 
+//    @Override
+//    public List<UserResponseDTO> getUsersLastNameLikeAndFirstNameLike(String lastName, String firstName) {
+//        List<User> users = userRepository.findUserByLastNameLikeAndFirstNameContains(lastName, firstName);
+//
+//        return listMapper.mapList(users, UserResponseDTO.class);
+//    }
+
+
+    // NOTA: MALA PRACTICA 1 (entityManager)
+    @Override
+    public UserResponseDTO getUserById(Integer id) {
+        User user = (User) entityManager.createQuery("from user where id = ?1")
+                .setParameter(1, id)
+                .getSingleResult();
+        return modelMapper.map(user, UserResponseDTO.class);
+    }
+
+
+    // NOTA: MALA PRACTICA 2 (@NameQuery y entityManager)
+    @Override
+    public UserResponseDTO getUserByLastName(String lastName) {
+        TypedQuery<User> query = entityManager.createNamedQuery("getUserByLastName", User.class);
+        query.setParameter("lastName", lastName);
+
+        User user = query.getResultList().get(1);
+        return modelMapper.map(user, UserResponseDTO.class);
+    }
+
+    @Override
+    public UserCategoryDTO getCategoryById(Long id) {
+        List<LocalDate> result = userRepository.findNotesBetweenThreeDaysAgo(id);
+        if (result.size() == 3) return new UserCategoryDTO(id, UserCategoryEnum.DIARY_PUBLISHER);
+
+        result = userRepository.findNotesBetweenThreeWeeksAgo(id);
+        if (!result.isEmpty() && checkNoteCreatedInLastThreeWeeks(result))
+            return new UserCategoryDTO(id, UserCategoryEnum.WEEKLY_PUBLISHER);
+
+        return new UserCategoryDTO(id, UserCategoryEnum.PUBLISHER);
+    }
+
+    private boolean checkNoteCreatedInLastThreeWeeks(List<LocalDate> result) {
+        Predicate<LocalDate> lastWeek = localDate ->
+                localDate.equals(LocalDate.now()) || (localDate.isBefore(LocalDate.now()) &&
+                        localDate.isAfter(LocalDate.now().minusWeeks(1)));
+
+        Predicate<LocalDate> lastTwoWeeks = localDate ->
+                localDate.isBefore(LocalDate.now().minusWeeks(1)) &&
+                        localDate.isAfter(LocalDate.now().minusWeeks(2));
+
+        Predicate<LocalDate> lastThreeWeeks = localDate ->
+                localDate.isBefore(LocalDate.now().minusWeeks(2)) &&
+                        localDate.isAfter(LocalDate.now().minusWeeks(3));
+
+        boolean fw = false, sw = false, tw = false;
+        for (LocalDate r : result) {
+            if (lastWeek.test(r)) fw = true;
+            else if (lastTwoWeeks.test(r)) sw = true;
+            else if (lastThreeWeeks.test(r)) tw = true;
+        }
+
+        return fw && sw && tw;
+    }
 }

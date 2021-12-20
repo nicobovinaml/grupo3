@@ -24,7 +24,7 @@ public class NoteService implements INoteService {
     ModelMapper modelMapper;
 
     @Autowired
-    NoteService(NoteRepository noteRepository,
+    public NoteService(NoteRepository noteRepository,
                 UserRepository userRepository,
                 ModelMapper modelMapper) {
         this.noteRepository = noteRepository;
