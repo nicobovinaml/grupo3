@@ -4,10 +4,10 @@ import com.example.easynotes.dto.*;
 import com.example.easynotes.exception.ResourceNotFoundException;
 import com.example.easynotes.model.Note;
 import com.example.easynotes.model.Thank;
+import com.example.easynotes.model.TypeNote;
 import com.example.easynotes.model.User;
 import com.example.easynotes.repository.NoteRepository;
 import com.example.easynotes.repository.UserRepository;
-import com.example.easynotes.utils.ListMapper;
 import org.modelmapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,16 +22,13 @@ public class NoteService implements INoteService {
     NoteRepository noteRepository;
     UserRepository userRepository;
     ModelMapper modelMapper;
-    ListMapper listMapper;
 
     @Autowired
     public NoteService(NoteRepository noteRepository,
                 UserRepository userRepository,
-                ModelMapper modelMapper,
-                ListMapper listMapper) {
+                ModelMapper modelMapper) {
         this.noteRepository = noteRepository;
         this.userRepository = userRepository;
-        this.listMapper = listMapper;
 
         //Converter used to retrieve cant of user's notes
         Converter<Set<Note>, Integer> notesToCantNotesConverter = new AbstractConverter<Set<Note>, Integer>() {
@@ -72,7 +69,10 @@ public class NoteService implements INoteService {
     @Override
     public List<NoteResponseWithAuthorDTO> getAllNotes() {
         List<Note> notes = noteRepository.findAll();
-        return listMapper.mapList(notes, NoteResponseWithAuthorDTO.class);
+        return notes
+                .stream()
+                .map( note -> modelMapper.map( note, NoteResponseWithAuthorDTO.class ))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -143,7 +143,9 @@ public class NoteService implements INoteService {
         Note note = noteRepository.findById(id)
                 .orElseThrow( () -> new ResourceNotFoundException("Note", "id", id) );
 
-        return listMapper.mapSet( note.getThanks(), ThankDTO.class );
+        return note.getThanks().stream()
+                        .map( thank -> modelMapper.map( thank, ThankDTO.class ))
+                        .collect(Collectors.toSet());
     }
 
     public List<NoteResponseWithCantLikesDTO> getThreeMoreThankedNotes (int year){
@@ -158,6 +160,18 @@ public class NoteService implements INoteService {
                 }
                 )
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public TypeNoteDTO getTypeNote(Long id) {
+        int countThanks = getThanks(id).size();
+        if(countThanks > 10) {
+            return new TypeNoteDTO(TypeNote.Destacada);
+        } else if (countThanks >= 5) {
+            return new TypeNoteDTO(TypeNote.DeInteres);
+        } else {
+            return new TypeNoteDTO(TypeNote.Normal);
+        }
     }
 }
 

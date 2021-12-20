@@ -36,20 +36,16 @@ public class UserService implements IUserService {
 
     ModelMapper modelMapper;
 
-    ListMapper listMapper;
-
     @PersistenceContext
     EntityManager entityManager;
 
     public UserService(UserRepository userRepository,
                 NoteRepository noteRepository,
                 ThankRepository thankRepository,
-                ModelMapper modelMapper,
-                ListMapper listMapper) {
+                ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.noteRepository = noteRepository;
         this.thankRepository = thankRepository;
-        this.listMapper = listMapper;
 
 
         Converter<Long, User> authorIdToUserConverter = new AbstractConverter<Long, User>() {
@@ -71,19 +67,25 @@ public class UserService implements IUserService {
     @Override
     public List<UserResponseDTO> getAllUsers() {
         List<User> listUsers = userRepository.findAll();
-        return listMapper.mapList(listUsers, UserResponseDTO.class);
+        return listUsers.stream()
+                .map( user -> modelMapper.map( user, UserResponseDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
     public List<UserResponseWithNotesDTO> getAllUsersWithNotes() {
         List<User> listUsers = userRepository.findAll();
-        return listMapper.mapList(listUsers, UserResponseWithNotesDTO.class);
+        return listUsers.stream()
+                .map( user -> modelMapper.map( user, UserResponseWithNotesDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
     public List<UserResponseWithCantNotesDTO> getAllUsersWithCantNotes() {
         List<User> listUsers = userRepository.findAll();
-        return listMapper.mapList(listUsers, UserResponseWithCantNotesDTO.class);
+        return listUsers.stream()
+                .map( user -> modelMapper.map( user, UserResponseWithCantNotesDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
@@ -148,14 +150,18 @@ public class UserService implements IUserService {
     public List<UserResponseWithNotesDTO> getUsersByNoteTitleLike(String title) {
         List<User> users = userRepository.findUserByNoteTitleLike(title);
 
-        return listMapper.mapList(users, UserResponseWithNotesDTO.class);
+        return users.stream()
+                .map( user -> modelMapper.map( user, UserResponseWithNotesDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
     public List<UserResponseWithNotesDTO> getUsersByNoteCreatedAfterDate(Date date) {
         List<User> users = userRepository.findUserByNoteCreatedAtLessOrEqualDate(date);
 
-        return listMapper.mapList(users, UserResponseWithNotesDTO.class);
+        return users.stream()
+                .map( user -> modelMapper.map( user, UserResponseWithNotesDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
