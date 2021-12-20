@@ -8,7 +8,6 @@ import com.example.easynotes.model.User;
 import com.example.easynotes.repository.NoteRepository;
 import com.example.easynotes.repository.ThankRepository;
 import com.example.easynotes.repository.UserRepository;
-import com.example.easynotes.utils.ListMapper;
 import org.modelmapper.AbstractConverter;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
@@ -33,20 +32,16 @@ public class UserService implements IUserService {
 
     ModelMapper modelMapper;
 
-    ListMapper listMapper;
-
     @PersistenceContext
     EntityManager entityManager;
 
     UserService(UserRepository userRepository,
                 NoteRepository noteRepository,
                 ThankRepository thankRepository,
-                ModelMapper modelMapper,
-                ListMapper listMapper) {
+                ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.noteRepository = noteRepository;
         this.thankRepository = thankRepository;
-        this.listMapper = listMapper;
 
 
         Converter<Long, User> authorIdToUserConverter = new AbstractConverter<Long, User>() {
@@ -68,19 +63,25 @@ public class UserService implements IUserService {
     @Override
     public List<UserResponseDTO> getAllUsers() {
         List<User> listUsers = userRepository.findAll();
-        return listMapper.mapList(listUsers, UserResponseDTO.class);
+        return listUsers.stream()
+                .map( user -> modelMapper.map( user, UserResponseDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
     public List<UserResponseWithNotesDTO> getAllUsersWithNotes() {
         List<User> listUsers = userRepository.findAll();
-        return listMapper.mapList(listUsers, UserResponseWithNotesDTO.class);
+        return listUsers.stream()
+                .map( user -> modelMapper.map( user, UserResponseWithNotesDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
     public List<UserResponseWithCantNotesDTO> getAllUsersWithCantNotes() {
         List<User> listUsers = userRepository.findAll();
-        return listMapper.mapList(listUsers, UserResponseWithCantNotesDTO.class);
+        return listUsers.stream()
+                .map( user -> modelMapper.map( user, UserResponseWithCantNotesDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
@@ -145,14 +146,18 @@ public class UserService implements IUserService {
     public List<UserResponseWithNotesDTO> getUsersByNoteTitleLike(String title) {
         List<User> users = userRepository.findUserByNoteTitleLike(title);
 
-        return listMapper.mapList(users, UserResponseWithNotesDTO.class);
+        return users.stream()
+                .map( user -> modelMapper.map( user, UserResponseWithNotesDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
     public List<UserResponseWithNotesDTO> getUsersByNoteCreatedAfterDate(Date date) {
         List<User> users = userRepository.findUserByNoteCreatedAtLessOrEqualDate(date);
 
-        return listMapper.mapList(users, UserResponseWithNotesDTO.class);
+        return users.stream()
+                .map( user -> modelMapper.map( user, UserResponseWithNotesDTO.class ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
@@ -168,31 +173,4 @@ public class UserService implements IUserService {
         thankRepository.save(thank);
     }
 
-//    @Override
-//    public List<UserResponseDTO> getUsersLastNameLikeAndFirstNameLike(String lastName, String firstName) {
-//        List<User> users = userRepository.findUserByLastNameLikeAndFirstNameContains(lastName, firstName);
-//
-//        return listMapper.mapList(users, UserResponseDTO.class);
-//    }
-
-
-    // NOTA: MALA PRACTICA 1 (entityManager)
-    @Override
-    public UserResponseDTO getUserById(Integer id) {
-        User user = (User) entityManager.createQuery("from user where id = ?1")
-                .setParameter(1, id)
-                .getSingleResult();
-        return modelMapper.map(user, UserResponseDTO.class);
-    }
-
-
-    // NOTA: MALA PRACTICA 2 (@NameQuery y entityManager)
-    @Override
-    public UserResponseDTO getUserByLastName(String lastName) {
-        TypedQuery<User> query = entityManager.createNamedQuery("getUserByLastName", User.class);
-        query.setParameter("lastName", lastName);
-
-        User user = query.getResultList().get(1);
-        return modelMapper.map(user, UserResponseDTO.class);
-    }
 }

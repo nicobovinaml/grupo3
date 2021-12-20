@@ -44,7 +44,7 @@ public class NotesIntegrationTest {
     MockMvc mockMvc;
 
     // antes de cada ejecucicon de un test vacia el cache de los datos en memoria
-    // cada test tiene un estado inicial(como si fuera el primero en ejecutarse) gracias a la anotacion
+    // cada test tiene un estado inicial(como si fuera el priemro en ejecutarse) gracias a la anotacion
 /*    @MockBean
     NoteService noteService;*/
 

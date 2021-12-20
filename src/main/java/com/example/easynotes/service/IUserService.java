@@ -35,13 +35,4 @@ public interface IUserService {
 
     void createThank(Long userId, Long noteId);
 
-
-    // NOTA: Metodos de Jean para HQL
-
-    UserResponseDTO getUserById(Integer id);
-
-    UserResponseDTO getUserByLastName(String lastName);
-
-    //  List<UserResponseDTO> getUsersLastNameLikeAndFirstNameLike(String lastName, String firstName);
-
 }

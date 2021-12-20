@@ -60,6 +60,7 @@ public class NoteController {
     public List<NoteResponseWithCantLikesDTO> getNotesWithLikesByYear(@PathVariable(value = "year") int year){
         return noteService.getThreeMoreThankedNotes(year);
     }
+
     @GetMapping("takeNoteAccordingToThanks/{noteId}")
     public TypeNoteDTO getNoteAccordingToThanks(@PathVariable(value = "noteId") Long noteId){
         return noteService.getTypeNote(noteId);

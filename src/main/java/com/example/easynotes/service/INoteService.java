@@ -24,6 +24,5 @@ public interface INoteService {
 
     List<NoteResponseWithCantLikesDTO> getThreeMoreThankedNotes (int year);
 
-    TypeNoteDTO getTypeNote(Long id);
-
+    TypeNoteDTO getTypeNote(Long noteId);
 }
