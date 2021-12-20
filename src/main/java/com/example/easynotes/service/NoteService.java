@@ -161,6 +161,7 @@ public class NoteService implements INoteService {
                 )
                 .collect(Collectors.toList());
     }
+
     @Override
     public TypeNoteDTO getTypeNote(Long id) {
         int countThanks = getThanks(id).size();
