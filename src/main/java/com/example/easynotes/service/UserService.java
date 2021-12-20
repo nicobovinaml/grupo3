@@ -10,6 +10,7 @@ import com.example.easynotes.repository.NoteRepository;
 import com.example.easynotes.repository.ThankRepository;
 import com.example.easynotes.repository.UserRepository;
 import com.example.easynotes.utils.ListMapper;
+import org.apache.tomcat.jni.Local;
 import org.modelmapper.AbstractConverter;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
@@ -200,16 +201,16 @@ public class UserService implements IUserService {
 
     @Override
     public UserCategoryDTO getCategoryById(Long id) {
-        List<NoteCountByDateDTO> result = userRepository.findNotesBetweenThreeDaysAgo(id);
+        HashMap<LocalDate, Integer> result = userRepository.findNotesBetweenThreeDaysAgo(id).get(0);
         if (result.size() == 3) return new UserCategoryDTO(id, UserCategoryEnum.DIARY_PUBLISHER);
 
-        result = userRepository.findNotesBetweenThreeWeeksAgo(id);
+        result = userRepository.findNotesBetweenThreeWeeksAgo(id).get(0);
         if (noteInLastThreeWeeks(result)) return new UserCategoryDTO(id, UserCategoryEnum.WEEKLY_PUBLISHER);
 
         return new UserCategoryDTO(id, UserCategoryEnum.PUBLISHER);
     }
 
-    private boolean noteInLastThreeWeeks(List<NoteCountByDateDTO> notes) {
+    private boolean noteInLastThreeWeeks(HashMap<LocalDate, Integer> notes) {
         Predicate<LocalDate> lastWeek = localDate ->
                 localDate.equals(LocalDate.now()) || (localDate.isBefore(LocalDate.now()) &&
                         localDate.isAfter(LocalDate.now().minusWeeks(1)));
@@ -222,12 +223,8 @@ public class UserService implements IUserService {
                 localDate.isBefore(LocalDate.now().minusWeeks(2)) &&
                         localDate.isAfter(LocalDate.now().minusWeeks(3));
 
-        List<LocalDate> dates = notes.stream()
-                .map(NoteCountByDateDTO::getDate)
-                .collect(Collectors.toList());
-
         boolean fw = false, sw = false, tw = false;
-        for (LocalDate date : dates) {
+        for (LocalDate date : notes.keySet()) {
             if (lastWeek.test(date)) fw = true;
             else if (lastTwoWeeks.test(date)) sw = true;
             else if (lastThreeWeeks.test(date)) tw = true;
