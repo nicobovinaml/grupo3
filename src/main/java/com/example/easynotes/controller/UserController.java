@@ -1,6 +1,7 @@
 package com.example.easynotes.controller;
 
 import com.example.easynotes.dto.*;
+import com.example.easynotes.service.INoteService;
 import com.example.easynotes.service.IUserService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;

@@ -1,92 +1,108 @@
 package com.example.easynotes.service;
 
-import com.example.easynotes.dto.NoteResponseWithAuthorDTO;
+import com.example.easynotes.dto.NoteRequestDTO;
+import com.example.easynotes.exception.ResourceNotFoundException;
 import com.example.easynotes.model.Note;
+import com.example.easynotes.model.Thank;
+import com.example.easynotes.model.User;
 import com.example.easynotes.repository.NoteRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assert;
+import com.example.easynotes.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import javax.naming.spi.ResolveResult;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Optional;
+import java.util.Set;
 
-@SpringBootTest
-@ExtendWith(MockitoExtension.class)
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 class NoteServiceTest {
+    UserRepository userRepository = Mockito.mock(UserRepository.class);
 
-    @Mock
-    NoteRepository noteRepository;
+    NoteRepository noteRepository = Mockito.mock(NoteRepository.class);
 
-    @InjectMocks
-    NoteService noteService;
+    ModelMapper modelMapper = new ModelMapper();
 
-    ModelMapper modelMapper;
+    NoteService noteService = new NoteService(noteRepository, userRepository, modelMapper);
 
     @Test
     void getAllNotes() {
-        //Arrange
-        Note note = new Note();
-        note.setId(0L);
-        note.setTitle("Si el tiempo no se me pasa más cuando se corta la luz1");
-        Note note2 = new Note();
-        note.setId(1L);
-        note.setTitle("Si el tiempo no se me pasa más cuando se corta la luz2");
-        List<Note> expectedNotes = Arrays.asList(note, note2);
-
-        NoteResponseWithAuthorDTO noteDTO = modelMapper.map(note, NoteResponseWithAuthorDTO.class);
-        NoteResponseWithAuthorDTO note2DTO =modelMapper.map(note2, NoteResponseWithAuthorDTO.class);
-
-        List<NoteResponseWithAuthorDTO> expectedNotesDTO = Arrays.asList(noteDTO, note2DTO);
-
-        //ACT && MOCK
-        Mockito.when(noteRepository.findAll()).thenReturn(expectedNotes);
-        List<NoteResponseWithAuthorDTO> foundNotes = noteService.getAllNotes();
-
-
-        Assertions.assertEquals(expectedNotesDTO, foundNotes);
-
+        noteService.getAllNotes();
     }
 
     @Test
     void createNote() {
+        when(noteRepository.save(any(Note.class))).thenReturn(new Note());
+        Assertions.assertDoesNotThrow(
+                () -> noteService.createNote(new NoteRequestDTO()) );
     }
 
     @Test
     void getNoteById() {
+        Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> noteService.getNoteById(1L) );
     }
 
     @Test
     void updateNote() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> noteService.updateNote(1L, new Note()));
+    }
+
+    @Test
+    void updateNoteOk() {
+        when(noteRepository.findById(1L)).thenReturn(Optional.of(new Note()));
+        when(noteRepository.save(any(Note.class))).thenReturn(new Note());
+        Assertions.assertDoesNotThrow(
+                () -> noteService.updateNote(1L, new Note()));
     }
 
     @Test
     void deleteNote() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> noteService.deleteNote(1L) );
     }
 
     @Test
     void addReviser() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> noteService.addReviser(2L, 1L) );
+    }
+
+
+    @Test
+    void addReviserOk() {
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
+        when(noteRepository.findById(2L)).thenReturn(Optional.of(new Note()));
+        Assertions.assertDoesNotThrow(
+                () -> noteService.addReviser(2L, 1L) );
     }
 
     @Test
     void getThanks() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> noteService.getThanks(3L) );
     }
+
+    @Test
+    void getThanksOk() {
+        var pedro = new User();
+        var note = new Note();
+        note.setThanks(Set.of(new Thank(pedro, note)));
+        when(noteRepository.findById(3L)).thenReturn(Optional.of(note));
+        Assertions.assertDoesNotThrow(
+                () -> noteService.getThanks(3L) );
+    }
+
 
     @Test
     void getThreeMoreThankedNotes() {
-    }
-
-    @Test
-    void getTypeNote() {
+        noteService.getThreeMoreThankedNotes(2020);
     }
 }
