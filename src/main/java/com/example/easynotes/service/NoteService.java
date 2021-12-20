@@ -25,7 +25,7 @@ public class NoteService implements INoteService {
     ListMapper listMapper;
 
     @Autowired
-    NoteService(NoteRepository noteRepository,
+    public NoteService(NoteRepository noteRepository,
                 UserRepository userRepository,
                 ModelMapper modelMapper,
                 ListMapper listMapper) {

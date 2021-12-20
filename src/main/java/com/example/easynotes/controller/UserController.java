@@ -17,7 +17,7 @@ public class UserController {
 
     IUserService userService;
 
-    UserController(IUserService userService) {
+    public UserController(IUserService userService) {
         this.userService = userService;
     }
 

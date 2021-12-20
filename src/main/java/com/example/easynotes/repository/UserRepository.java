@@ -40,18 +40,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "where note.createdAt >= :date" )
     List<User> findUserByNoteCreatedAtLessOrEqualDate(@Param("date") Date date);
 
-    @Query( "select new map(n.created_at as date, count(n.id) as count) " +
+    @Query( "select n.createdAt " +
             "from Note n " +
-            "where n.author.id = :user_id and n.created_at between current_date and current_date - 3 " +
-            "group by date" )
-    List<HashMap<LocalDate, Integer>> findNotesBetweenThreeDaysAgo(@Param("user_id") Long userId);
+            "where n.author.id = :user_id and n.createdAt between current_date - 3 and current_date " +
+            "group by n.createdAt" )
+    List<LocalDate> findNotesBetweenThreeDaysAgo(@Param("user_id") Long userId);
 
-    @Query( "select new map(n.created_at as date, count(n.id) as count) " +
+    @Query( "select n.createdAt " +
             "from Note n " +
-            "where n.author.id = :user_id and n.created_at between current_date and current_date - 21 " +
-            "group by date " +
-            "order by date" )
-    List<HashMap<LocalDate, Integer>> findNotesBetweenThreeWeeksAgo(@Param("user_id") Long userId);
+            "where n.author.id = :user_id and n.createdAt between current_date - 21 and current_date " +
+            "group by n.createdAt " +
+            "order by n.createdAt" )
+    List<LocalDate> findNotesBetweenThreeWeeksAgo(@Param("user_id") Long userId);
 
 
     //    // Ejemplo con like

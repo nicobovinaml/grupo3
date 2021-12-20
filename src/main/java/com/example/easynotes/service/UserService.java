@@ -41,7 +41,7 @@ public class UserService implements IUserService {
     @PersistenceContext
     EntityManager entityManager;
 
-    UserService(UserRepository userRepository,
+    public UserService(UserRepository userRepository,
                 NoteRepository noteRepository,
                 ThankRepository thankRepository,
                 ModelMapper modelMapper,
@@ -201,16 +201,16 @@ public class UserService implements IUserService {
 
     @Override
     public UserCategoryDTO getCategoryById(Long id) {
-        HashMap<LocalDate, Integer> result = userRepository.findNotesBetweenThreeDaysAgo(id).get(0);
+        List<LocalDate> result = userRepository.findNotesBetweenThreeDaysAgo(id);
         if (result.size() == 3) return new UserCategoryDTO(id, UserCategoryEnum.DIARY_PUBLISHER);
 
-        result = userRepository.findNotesBetweenThreeWeeksAgo(id).get(0);
+        result = userRepository.findNotesBetweenThreeWeeksAgo(id);
         if (noteInLastThreeWeeks(result)) return new UserCategoryDTO(id, UserCategoryEnum.WEEKLY_PUBLISHER);
 
         return new UserCategoryDTO(id, UserCategoryEnum.PUBLISHER);
     }
 
-    private boolean noteInLastThreeWeeks(HashMap<LocalDate, Integer> notes) {
+    private boolean noteInLastThreeWeeks(List<LocalDate> result) {
         Predicate<LocalDate> lastWeek = localDate ->
                 localDate.equals(LocalDate.now()) || (localDate.isBefore(LocalDate.now()) &&
                         localDate.isAfter(LocalDate.now().minusWeeks(1)));
@@ -224,10 +224,10 @@ public class UserService implements IUserService {
                         localDate.isAfter(LocalDate.now().minusWeeks(3));
 
         boolean fw = false, sw = false, tw = false;
-        for (LocalDate date : notes.keySet()) {
-            if (lastWeek.test(date)) fw = true;
-            else if (lastTwoWeeks.test(date)) sw = true;
-            else if (lastThreeWeeks.test(date)) tw = true;
+        for (LocalDate r : result) {
+            if (lastWeek.test(r)) fw = true;
+            else if (lastTwoWeeks.test(r)) sw = true;
+            else if (lastThreeWeeks.test(r)) tw = true;
         }
 
         return fw && sw && tw;

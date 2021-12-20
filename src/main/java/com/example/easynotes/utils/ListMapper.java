@@ -1,5 +1,6 @@
 package com.example.easynotes.utils;
 
+import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +22,7 @@ public class ListMapper {
     ModelMapper modelMapper;
 
     @Autowired
-    ListMapper(ModelMapper modelMapper) {
+    public ListMapper(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;
     }
 
